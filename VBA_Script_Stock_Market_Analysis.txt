@@ -1,0 +1,150 @@
+Sub StockMarketAnalysis()
+
+'NEED TO LOOP THROUGH ALL SHEETS!!!
+'Ticker symbol
+    'colI
+    'loop through column A FOR ALL SHEETS for unique ticker symbols
+    'enter unique ticker symbolinto column I
+'Yrly change from opening price at the start of the year to closing at the end of the year
+    'colJ
+    'subtract first date price from last date price
+'Percentage change from opening price at start of yeart to closing at end of year
+    'colK
+    '% change = col J / col C
+    'if negative, then this is a percentage decrease
+'Total stock volume
+    'colL
+    'add col G for each instance of the same ticker symbol
+
+
+
+'to loop through all worksheets
+For Each ws In Worksheets
+ws.Activate
+
+ 'call out variables
+    Dim TickerSymbol As String
+    Dim TickerRow As Integer
+    Dim PriceAtStart As Double
+    Dim PriceAtEnd As Double
+    Dim YearlyChange As Double
+    Dim PercentageChange As Double
+    Dim TotalVolume As Double
+    
+    'set values
+    TickerRow = 2
+    TotalVolume = 0
+    PriceAtStart = Cells(2, 3).Value
+    PriceAtEnd = Cells(2, 6).Value
+    PercentageChange = 0
+    
+    Cells(1, 9).Value = "Ticker Symbol"
+    Cells(1, 10).Value = "Yearly Change"
+    Cells(1, 11).Value = "Percentage Change"
+    Cells(1, 12).Value = "Total Stock Volume"
+    Cells(1, 16).Value = "Ticker Symbol"
+    Cells(1, 17).Value = "Value"
+    Cells(2, 15).Value = "Greatest % Increase"
+    Cells(3, 15).Value = "Greatest % Decrease"
+    Cells(4, 15).Value = "Greatest Total Volume"
+    
+    'determine last row
+    LastRow = Cells(Rows.Count, 1).End(xlUp).Row
+    
+    'loop through rows to populate column9,10,11,12 data
+    For i = 2 To LastRow
+    
+        'Col L cells(1,12)...has to be before if (cause need vol for each instance of a ticker)
+        TotalVolume = TotalVolume + Cells(i, 7).Value
+        
+        'if statement to calc cols by unique ticker
+        If Cells(i + 1, 1).Value <> Cells(i, 1).Value Then
+            
+            'ColI cells(1,9) Ticker Symbol
+            TickerSymbol = Cells(i, 1).Value
+            Range("I" & TickerRow).Value = TickerSymbol
+            PriceAtEnd = Cells(i, 6).Value
+            
+            'Col J cells(1,10)Yearly Change
+            YearlyChange = (PriceAtEnd - PriceAtStart)
+            Range("J" & TickerRow).Value = YearlyChange
+            
+                'Col K cells(1,11) Percentage Change...best to address any zero values
+                If PriceAtStart = 0 Then
+                PercentageChange = 0
+                Else: PercentageChange = YearlyChange / PriceAtStart
+                Range("K" & TickerRow).Value = PercentageChange
+                Range("K" & TickerRow).Style = "Percent"
+                        
+            'Col L cells(1,12) Total Stock Volume
+             Range("L" & TickerRow).Value = TotalVolume
+            
+            'reset all counters before loop to next ticker row
+            TickerRow = TickerRow + 1
+            TotalVolume = 0
+            PercentageChange = 0
+            PriceAtStart = Cells(i + 1, 3).Value
+            
+                End If
+       
+        End If
+        
+Next i
+    
+    For i = 2 To LastRow
+     'col j add conditional formatting
+            If Cells(i, 10).Value >= 0 Then
+                Cells(i, 10).Interior.ColorIndex = 4
+            Else
+                Cells(i, 10).Interior.ColorIndex = 3
+            End If
+
+Next i
+    
+        'add code to find greatest % increase, decrease and volume
+        
+        'call out varialbes
+        Dim Increase As Double
+        Dim Decrease As Double
+        Dim GreastestTotVol As Double
+            
+        'set values
+        Increase = 0
+        Decrease = 0
+        GreatestTotlVol = 0
+
+        'loop through rows of new data (column9,10,11,12) to find values
+        LastRowResults = Cells(Rows.Count, 9).End(xlUp).Row
+            
+        For r = 2 To LastRowResults
+            
+            If Increase < Cells(r, 11).Value Then
+            Increase = Cells(r, 11).Value
+            Cells(2, 16).Value = Cells(r, 9).Value
+            Cells(2, 17).Value = Increase
+            Cells(2, 17).Style = "Percent"
+            
+            End If
+            
+            If Decrease > Cells(r, 11).Value Then
+            Decrease = Cells(r, 11).Value
+            Cells(3, 16).Value = Cells(r, 9).Value
+            Cells(3, 17).Value = Decrease
+            Cells(3, 17).Style = "Percent"
+                                                            
+            End If
+            
+            If GreatestTotlVol < Cells(r, 12).Value Then
+            GreatestTotlVol = Cells(r, 12).Value
+            Cells(4, 16).Value = Cells(r, 9).Value
+            Cells(4, 17).Value = GreatestTotlVol
+                
+            End If
+            
+        Next r
+
+Next ws
+
+End Sub
+
+
